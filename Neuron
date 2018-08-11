@@ -1,0 +1,11 @@
+import random
+
+class Neuron:
+    def __init__(self, numWeights):
+        self.weights = []
+        for i in range(numWeights + 1):
+            self.weights.append(random.uniform(-1, 1))
+        self.input = 0
+        self.Bj = 0
+
+def main():
