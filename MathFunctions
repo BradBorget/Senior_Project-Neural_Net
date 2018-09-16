@@ -1,0 +1,22 @@
+import math
+
+def oldOutputWeightUpdate(originalWeight, learningRate, actualOutput, expectedOutput, valuePassed): #outdated See new one below
+    return originalWeight - (learningRate * (actualOutput - expectedOutput) * valuePassed) #w(ij) = w(ij) - n * (y(j) - t(j)) * x(i)
+
+def NeuronPassFail(listOfWeights, listOfInputs, unknownBeta):
+    i = 0
+    for index in range(listOfWeights):
+        i += listOfInputs[index] * listOfWeights[index] #This should be weights * inputs
+    return 1 / (1 + math.exp(-1 * unknownBeta * i))
+
+def weightUpdate(originalWeight, learningRate, errorOutput, expectedOutput, input): #Requires Error function first
+    return originalWeight - (learningRate * errorOutput * expectedOutput * input)
+
+def getOutputError(actualOutput, targetOutput):
+    return (actualOutput - targetOutput) * actualOutput * (1 - actualOutput)
+
+def getHiddenError(neuronPassFailValue, listOfWeights, error):
+    i = 0
+    for index in range(listOfWeights):
+        i += error * listOfWeights[index]  # This should be weights * inputs
+    return neuronPassFailValue * (1 - neuronPassFailValue) * i
