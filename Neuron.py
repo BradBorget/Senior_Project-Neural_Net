@@ -1,5 +1,5 @@
 import random
-import csv
+import pandas as pd
 
 
 class Neuron:
@@ -28,11 +28,15 @@ class NeuralNetModel:
 
 
 def main():
-    results = []
-    with open('example.csv') as File:
-        reader = csv.DictReader(File)
-        for row in reader:
-            results.append(row)
+    inputs = pd.read_csv("C:\\Users\\bradl\\Documents\\Github\\Senior_Project-Neural_Net\\letter-recognition.txt")
+    print(inputs)
+    print(len(set(inputs.letter)))
+
+    #results = []
+    #with open('example.csv') as File:
+    #    reader = csv.DictReader(File)
+    #    for row in reader:
+    #        results.append(row)
 
 
 
