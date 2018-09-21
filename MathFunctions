@@ -9,8 +9,8 @@ def NeuronPassFail(listOfWeights, listOfInputs):
         i += listOfInputs[index] * listOfWeights[index] #This should be weights * inputs
     return 1 / (1 + math.exp(-i))
 
-def weightUpdate(originalWeight, learningRate, errorOutput, expectedOutput, input): #Requires Error function first
-    return originalWeight - (learningRate * errorOutput * expectedOutput * input)
+def weightUpdate(originalWeight, learningRate, errorOutput, input): #Requires Error function first
+    return originalWeight - (learningRate * errorOutput * input)
 
 def getOutputError(actualOutput, targetOutput):
     return (actualOutput - targetOutput) * actualOutput * (1 - actualOutput)

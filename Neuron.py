@@ -1,6 +1,8 @@
 import random
 import pandas as pd
 
+#import MathFunctions as mf
+
 
 class Neuron:
     def __init__(self, num_weights):
@@ -49,19 +51,26 @@ def create_layer(num_inputs, numNeurons):
 
 def back_propagate(layers, output_layer, target_value):
     pass
+    #for neuron in output_layer:
+    #    neuron.Error = mf.getOutputError(neuron.output, target_value)
+    #for layer in layers:
+    #   for neuron in layer:
+    #        neuron.
 
 
 
 def main():
     inputs = pd.read_csv("C:\\Users\\bradl\\Documents\\Github\\Senior_Project-Neural_Net\\letter-recognition.txt")
-    print(inputs)
     output_layer = len(set(inputs.letter))
+    letters = inputs.letter
+    newinputs = inputs.loc[:, inputs.columns != 'letter']
+    print(newinputs)
     num_layers = input("Enter number of hidden layers: ")
     layers = []
     for i in range(0, num_layers):
         layer = input("Enter number of Neurons for hidden layer " + str(i+1) + ": ")
         layers.append(layer)
-    neural_network = create_network(layers, output_layer, (len(inputs.columns) - 1))
+    neural_network = create_network(layers, output_layer, len(newinputs.columns))
     print(len(neural_network))
 
 
