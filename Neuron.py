@@ -6,11 +6,7 @@ import MathFunctions as mf
 
 
 class Neuron:
-<<<<<<< HEAD
-    def __init__(self, num_weights, letter=""):
-=======
     def __init__(self, num_weights, letter):
->>>>>>> 172f92a90815d829074d558c34d418e281118896
         self.weights = []
         for i in range(num_weights + 1):
             self.weights.append(random.uniform(-1, 1))
@@ -39,11 +35,12 @@ class NeuralNetModel:
 
 def create_network(layers, output_layer, num_weight):
     layer_list = []
+    layer_list.append(create_layer(num_weight, layers[0]))
     j = 0
-    layer_list.append(create_layer(num_weight, layers[j]))
-    for i in layers[-0]:
-        layer_list.append(create_layer(layers[j], i))
-        j += 1
+    if(len(layers) > 1):
+        for i in range(len(layers)-1):
+            layer_list.append(create_layer(layers[i], layers[(i+1)]))
+            j = i
     layer_list.append(create_layer(layers[j], output_layer))
     return layer_list
 
@@ -55,16 +52,12 @@ def create_layer(num_inputs, num_neurons):
     return neuron_list
 
 
-def transfer(activate):
-    return 1.0 / (1.0 + np.exp(-activate))
-
-
 def forward_propagate(network, inputs):
     for layer in network:
         new_inputs = []
         for neuron in layer:
             activate = mf.NeuronPassFail(neuron.weights, inputs)
-            neuron.output = transfer(activate)
+            neuron.output = activate
             new_inputs.append(neuron.ouput)
         outputs = new_inputs
     return outputs
@@ -80,17 +73,18 @@ def back_propagate(layers, output_layer, target_value):
 
 
 def main():
-    inputs = pd.read_csv("letter-recognition.txt")
+    inputs = pd.read_csv("C:\\Users\\bradl\\Documents\\GitHub\\Senior_Project-Neural_Net\\letter-recognition.txt")
     output_layer = len(set(inputs.letter))
     letters = inputs.letter
     new_inputs = inputs.loc[:, inputs.columns != 'letter']
-    num_layers = input("Enter number of hidden layers: ")
+    num_layers = int(input("Enter number of hidden layers: "))
     layers = []
     for i in range(0, num_layers):
-        layer = input("Enter number of Neurons for hidden layer " + str(i+1) + ": ")
+        layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
     outputs = forward_propagate(neural_network, new_inputs)
+    print(outputs)
 
 
 if __name__ == "__main__":
