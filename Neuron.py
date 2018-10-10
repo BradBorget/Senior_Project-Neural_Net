@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class Neuron:
-    def __init__(self, num_weights):
+    def __init__(self, num_weights, letter=""):
         self.weights = []
         for i in range(num_weights + 1):
             self.weights.append(random.uniform(-1, 1))
@@ -13,6 +13,7 @@ class Neuron:
         #self.Bj = 0 #I can't remember what B sub j represents, so I'm commenting it out for now.  Putting in Error instead to represent the value that the neuron came to
         self.output = 0
         self.Error = 0
+        self.letter = letter
 
 
 class NeuralNetClass:
