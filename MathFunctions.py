@@ -7,6 +7,7 @@ def oldOutputWeightUpdate(originalWeight, learningRate, actualOutput, expectedOu
 
 def NeuronPassFail(listOfWeights, listOfInputs):
     i = 0
+    listOfInputs.insert(-1)
     for index in range(len(listOfWeights)):
         i += listOfInputs[index] * listOfWeights[index] #This should be weights * inputs
     return 1 / (1 + math.exp(-i))

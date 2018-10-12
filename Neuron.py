@@ -37,7 +37,7 @@ def create_network(layers, output_layer, num_weight):
     layer_list = []
     layer_list.append(create_layer(num_weight, layers[0]))
     j = 0
-    if(len(layers) > 1):
+    if len(layers) > 1:
         for i in range(len(layers)-1):
             layer_list.append(create_layer(layers[i], layers[(i+1)]))
             j = i
@@ -53,27 +53,34 @@ def create_layer(num_inputs, num_neurons):
 
 
 def forward_propagate(network, inputs):
+    new_inputs = []
     for layer in network:
-        new_inputs = []
-        input_weights = []
-        for i in range(len(inputs) + 1):
-            input_weights.append(random.uniform(-1, 1))
-            # Not sure about the above for loop
         for neuron in layer:
-            activate = mf.NeuronPassFail(neuron.weights, input_weights)
+            activate = mf.NeuronPassFail(neuron.weights, inputs)
             neuron.output = activate
             new_inputs.append(neuron.output)
-        outputs = new_inputs
-    return outputs
+    return new_inputs
 
 
-def back_propagate(layers, output_layer, target_value):
-    pass
-    #for neuron in output_layer:
-    #    neuron.Error = mf.getOutputError(neuron.output, target_value)
-    #for layer in layers:
-    #   for neuron in layer:
-    #        neuron.
+def back_propagate(layers, target_value):
+    output_layer = layers[-1]
+    errors = []
+    for neuron in range(len(output_layer)):
+        error = 0
+        if neuron == target_value:
+            if output_layer[neuron].output <= 0:
+                output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 1)
+                error = output_layer[neuron].Error
+        else:
+            if output_layer[neuron].output > 0:
+                output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 0)
+                error = output_layer[neuron].Error
+        errors.append(error)
+    for layer in reversed(range(len(layers))):
+        if layer != output_layer:
+            for neuron in layer:
+                neuron.Error = getHiddenError(neuron.output, neuron.weights, )
+
 
 
 def main():
