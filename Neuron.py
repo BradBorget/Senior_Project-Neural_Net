@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 import numpy as np
+import itertools
 
 import MathFunctions as mf
 
@@ -37,7 +38,7 @@ def create_network(layers, output_layer, num_weight):
     layer_list = []
     layer_list.append(create_layer(num_weight, layers[0]))
     j = 0
-    if(len(layers) > 1):
+    if len(layers) > 1:
         for i in range(len(layers)-1):
             layer_list.append(create_layer(layers[i], layers[(i+1)]))
             j = i
@@ -53,6 +54,7 @@ def create_layer(num_inputs, num_neurons):
 
 
 def forward_propagate(network, inputs):
+    new_inputs = []
     for layer in network:
         new_inputs = []
         for neuron in layer:
@@ -81,10 +83,63 @@ def backward_propagate_error(network, expected):
             neuron.error = errors[j] * mf.transfer_derivative(neuron.output)
 
 
+def back_propagate(layers, target_value):
+    output_layer = layers[-1]
+    errors = []
+    for neuron in range(len(output_layer)):
+        error = 0
+        if neuron == target_value:
+            if output_layer[neuron].output <= 0:
+                output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 1)
+                error = output_layer[neuron].Error
+        else:
+            if output_layer[neuron].output > 0:
+                output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 0)
+                error = output_layer[neuron].Error
+        errors.append(error)
+    for layer in reversed(range(len(layers))):
+        if layer != output_layer:
+            for neuron in layer:
+                neuron.Error = mf.getHiddenError(neuron.output, neuron.weights,)
+
+
+def setup_letters(letters_input):
+    letters = dict.fromkeys(letters_input.tolist())
+    letters['A'] = 0
+    letters['B'] = 1
+    letters['C'] = 2
+    letters['D'] = 3
+    letters['E'] = 4
+    letters['F'] = 5
+    letters['G'] = 6
+    letters['H'] = 7
+    letters['I'] = 8
+    letters['J'] = 9
+    letters['K'] = 10
+    letters['L'] = 11
+    letters['M'] = 12
+    letters['N'] = 13
+    letters['O'] = 14
+    letters['P'] = 15
+    letters['Q'] = 16
+    letters['R'] = 17
+    letters['S'] = 18
+    letters['T'] = 19
+    letters['U'] = 20
+    letters['V'] = 21
+    letters['W'] = 22
+    letters['X'] = 23
+    letters['Y'] = 24
+    letters['Z'] = 25
+    print(letters)
+    return letters
+
+
 def main():
     inputs = pd.read_csv("letter-recognition.txt")
     output_layer = len(set(inputs.letter))
     letters = inputs.letter
+    letters_dic = setup_letters(letters)
     new_inputs = inputs.loc[:, inputs.columns != 'letter']
     num_layers = int(input("Enter number of hidden layers: "))
     layers = []
@@ -92,7 +147,8 @@ def main():
         layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
-    outputs = forward_propagate(neural_network, new_inputs)
+    for ninput, row in new_inputs.iterrows():
+        outputs = forward_propagate(neural_network, row.tolist())
     backward_propagate_error(neural_network, letters)
     print(neural_network)
 
