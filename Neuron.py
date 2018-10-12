@@ -83,8 +83,8 @@ def main():
         layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
-    outputs = forward_propagate(neural_network, new_inputs)
-    print(outputs)
+    for ninput, row in new_inputs.iterrows():
+        outputs = forward_propagate(neural_network, row)
 
 
 if __name__ == "__main__":
