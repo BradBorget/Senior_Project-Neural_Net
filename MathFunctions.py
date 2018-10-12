@@ -9,7 +9,7 @@ def oldOutputWeightUpdate(originalWeight, learningRate, actualOutput, expectedOu
 def NeuronPassFail(listOfWeights, listOfInputs):
     i = 0
     for index in range(len(listOfWeights)):
-        if index + 1 - len(listOfInputs) <= 0:
+        if (index+1) - len(listOfInputs) <= 0:
             i += listOfInputs[index] * listOfWeights[index] #This should be weights * inputs
         else:
             i += -1 * listOfWeights[index]
@@ -24,12 +24,12 @@ def getOutputError(actualOutput, targetOutput):
     return (actualOutput - targetOutput) * actualOutput * (1 - actualOutput)
 
 
-def getHiddenError(neuronPassFailValue, listOfWeights, error):
-    i = 0
-    for index in range(listOfWeights):
-        i += error * listOfWeights[index]  # This should be weights * inputs
-    return neuronPassFailValue * (1 - neuronPassFailValue) * i
-
-
 def transfer_derivative(output):
     return output * (1.0 - output)
+
+def getHiddenError(neuronPassFailValue, index, layers):
+    error = 0
+    for neuron in layers[index + 1]:
+        error += (neuron.weights[index] * neuron.error)
+    return neuronPassFailValue * (1 - neuronPassFailValue) * error
+
