@@ -25,3 +25,7 @@ def getHiddenError(neuronPassFailValue, listOfWeights, error):
     for index in range(listOfWeights):
         i += error * listOfWeights[index]  # This should be weights * inputs
     return neuronPassFailValue * (1 - neuronPassFailValue) * i
+
+
+def transfer_derivative(output):
+    return output * (1.0 - output)

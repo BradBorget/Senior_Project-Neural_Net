@@ -55,25 +55,30 @@ def create_layer(num_inputs, num_neurons):
 def forward_propagate(network, inputs):
     for layer in network:
         new_inputs = []
-        input_weights = []
-        for i in range(len(inputs) + 1):
-            input_weights.append(random.uniform(-1, 1))
-            # Not sure about the above for loop
         for neuron in layer:
-            activate = mf.NeuronPassFail(neuron.weights, input_weights)
+            activate = mf.NeuronPassFail(neuron.weights, inputs)
             neuron.output = activate
             new_inputs.append(neuron.output)
-        outputs = new_inputs
-    return outputs
+    return new_inputs
 
 
-def back_propagate(layers, output_layer, target_value):
-    pass
-    #for neuron in output_layer:
-    #    neuron.Error = mf.getOutputError(neuron.output, target_value)
-    #for layer in layers:
-    #   for neuron in layer:
-    #        neuron.
+def backward_propagate_error(network, expected):
+    for i in reversed(range(len(network))):
+        layer = network[i]
+        errors = list()
+        if i != len(network)-1:
+            for j in range(len(layer)):
+                error = 0.0
+                for neuron in network[i + 1]:
+                    error += (neuron.weights[j] * neuron.error)
+                errors.append(error)
+        else:
+            for j in range(len(layer)):
+                neuron = layer[j]
+                errors.append(expected[j] - neuron.output)
+        for j in range(len(layer)):
+            neuron = layer[j]
+            neuron.error = errors[j] * mf.transfer_derivative(neuron.output)
 
 
 def main():
@@ -88,7 +93,8 @@ def main():
         layers.append(layer)
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
     outputs = forward_propagate(neural_network, new_inputs)
-    print(outputs)
+    backward_propagate_error(neural_network, letters)
+    print(neural_network)
 
 
 if __name__ == "__main__":
