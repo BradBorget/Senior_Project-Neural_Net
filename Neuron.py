@@ -55,10 +55,14 @@ def create_layer(num_inputs, num_neurons):
 def forward_propagate(network, inputs):
     for layer in network:
         new_inputs = []
+        input_weights = []
+        for i in range(len(inputs) + 1):
+            input_weights.append(random.uniform(-1, 1))
+            # Not sure about the above for loop
         for neuron in layer:
-            activate = mf.NeuronPassFail(neuron.weights, inputs)
+            activate = mf.NeuronPassFail(neuron.weights, input_weights)
             neuron.output = activate
-            new_inputs.append(neuron.ouput)
+            new_inputs.append(neuron.output)
         outputs = new_inputs
     return outputs
 
@@ -73,7 +77,7 @@ def back_propagate(layers, output_layer, target_value):
 
 
 def main():
-    inputs = pd.read_csv("C:\\Users\\bradl\\Documents\\GitHub\\Senior_Project-Neural_Net\\letter-recognition.txt")
+    inputs = pd.read_csv("letter-recognition.txt")
     output_layer = len(set(inputs.letter))
     letters = inputs.letter
     new_inputs = inputs.loc[:, inputs.columns != 'letter']
