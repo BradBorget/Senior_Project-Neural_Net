@@ -10,7 +10,7 @@ class Neuron:
         self.weights = []
         for i in range(num_weights + 1):
             self.weights.append(random.uniform(-1, 1))
-        #self.inputs = inputs
+        self.inputs = []
         #self.Bj = 0 #I can't remember what B sub j represents, so I'm commenting it out for now.  Putting in Error instead to represent the value that the neuron came to
         self.output = 0
         self.Error = 0
@@ -53,33 +53,35 @@ def create_layer(num_inputs, num_neurons):
 
 
 def forward_propagate(network, inputs):
-    new_inputs = []
+    output = []
     for layer in network:
+        output = []
         for neuron in layer:
-            activate = mf.NeuronPassFail(neuron.weights, inputs)
+            neuron.inputs = inputs
+            neuron.inputs.append(-1)
+            activate = mf.NeuronPassFail(neuron.weights, neuron.inputs)
             neuron.output = activate
-            new_inputs.append(neuron.output)
-    return new_inputs
+            output.append(neuron.output)
+    return output
 
 
-def back_propagate(layers, target_value):
-    output_layer = layers[-1]
-    errors = []
+def back_propagate(layers, target_value, learning_rate):
+    output_layer = layers[len(layers)-1]
     for neuron in range(len(output_layer)):
-        error = 0
         if neuron == target_value:
             if output_layer[neuron].output <= 0:
                 output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 1)
-                error = output_layer[neuron].Error
         else:
             if output_layer[neuron].output > 0:
                 output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 0)
-                error = output_layer[neuron].Error
-        errors.append(error)
+    for layer in reversed(range(len(layers)-1)):
+        for item in range(len(layers[layer])):
+            layer[item].Error = mf.getHiddenError(layers[item].output, item, layers)
     for layer in reversed(range(len(layers))):
-        if layer != output_layer:
-            for neuron in layer:
-                neuron.Error = getHiddenError(neuron.output, neuron.weights, )
+        for neuron in layers[layer]:
+            for weight in range(len(neuron.weights)):
+                neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error, neuron.inputs[weight])
+
 
 
 
@@ -95,7 +97,9 @@ def main():
         layers.append(layer)
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
     for ninput, row in new_inputs.iterrows():
-        outputs = forward_propagate(neural_network, row)
+        while()
+        outputs = forward_propagate(neural_network, row.tolist())
+        back_propagate(neural_network, row.letter, .1)
 
 
 if __name__ == "__main__":
