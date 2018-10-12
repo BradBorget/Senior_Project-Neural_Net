@@ -86,7 +86,7 @@ def back_propagate(layers, target_value, learning_rate):
 
 
 def main():
-    inputs = pd.read_csv("letter-recognition.txt")
+    inputs = pd.read_csv("C:\\Users\\bradl\\Documents\\GitHub\\Senior_Project-Neural_Net\\letter-recognition.txt")
     output_layer = len(set(inputs.letter))
     letters = inputs.letter
     new_inputs = inputs.loc[:, inputs.columns != 'letter']
@@ -97,9 +97,8 @@ def main():
         layers.append(layer)
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
     for ninput, row in new_inputs.iterrows():
-        while()
         outputs = forward_propagate(neural_network, row.tolist())
-        back_propagate(neural_network, row.letter, .1)
+        back_propagate(neural_network, letters[ninput], .1)
 
 
 if __name__ == "__main__":
