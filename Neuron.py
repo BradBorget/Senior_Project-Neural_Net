@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 import numpy as np
+import itertools
 
 import MathFunctions as mf
 
@@ -55,6 +56,7 @@ def create_layer(num_inputs, num_neurons):
 def forward_propagate(network, inputs):
     output = []
     for layer in network:
+        new_inputs = []
         output = []
         for neuron in layer:
             neuron.inputs = inputs
@@ -63,6 +65,31 @@ def forward_propagate(network, inputs):
             neuron.output = activate
             output.append(neuron.output)
     return output
+
+
+
+def backward_propagate_error(network, expected):
+    for i in reversed(range(len(network))):
+        layer = network[i]
+        errors = list()
+        if i != len(network)-1:
+            for j in range(len(layer)):
+                error = 0.0
+                for neuron in network[i + 1]:
+                    error += (neuron.weights[j] * neuron.error)
+                errors.append(error)
+        else:
+            for j in range(len(layer)):
+                neuron = layer[j]
+                errors.append(expected[j] - neuron.output)
+        for j in range(len(layer)):
+            neuron = layer[j]
+            neuron.error = errors[j] * mf.transfer_derivative(neuron.output)
+
+
+def back_propagate(layers, target_value):
+    output_layer = layers[-1]
+    errors = []
 
 
 def back_propagate(layers, target_value, learning_rate):
@@ -74,31 +101,65 @@ def back_propagate(layers, target_value, learning_rate):
         else:
             if output_layer[neuron].output > 0:
                 output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 0)
-    for layer in reversed(range(len(layers)-1)):
+    for layer in reversed(range(len(layers)-2)):
         for item in range(len(layers[layer])):
-            layer[item].Error = mf.getHiddenError(layers[item].output, item, layers)
-    for layer in reversed(range(len(layers))):
-        for neuron in layers[layer]:
-            for weight in range(len(neuron.weights)):
-                neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error, neuron.inputs[weight])
+            layers[layer][item].Error = mf.getHiddenError(layers[layer][item].output, item, layers)
+    for neuron in layers[layer]:
+        for weight in range(len(neuron.weights)):
+            neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error,
+                                                     neuron.inputs[weight])
 
 
+def setup_letters(letters_input):
+    letters = dict.fromkeys(letters_input.tolist())
+    letters['A'] = 0
+    letters['B'] = 1
+    letters['C'] = 2
+    letters['D'] = 3
+    letters['E'] = 4
+    letters['F'] = 5
+    letters['G'] = 6
+    letters['H'] = 7
+    letters['I'] = 8
+    letters['J'] = 9
+    letters['K'] = 10
+    letters['L'] = 11
+    letters['M'] = 12
+    letters['N'] = 13
+    letters['O'] = 14
+    letters['P'] = 15
+    letters['Q'] = 16
+    letters['R'] = 17
+    letters['S'] = 18
+    letters['T'] = 19
+    letters['U'] = 20
+    letters['V'] = 21
+    letters['W'] = 22
+    letters['X'] = 23
+    letters['Y'] = 24
+    letters['Z'] = 25
+    return letters
 
 
 def main():
     inputs = pd.read_csv("C:\\Users\\bradl\\Documents\\GitHub\\Senior_Project-Neural_Net\\letter-recognition.txt")
     output_layer = len(set(inputs.letter))
     letters = inputs.letter
+
+    letters_dic = setup_letters(letters)
     new_inputs = inputs.loc[:, inputs.columns != 'letter']
+
     num_layers = int(input("Enter number of hidden layers: "))
     layers = []
     for i in range(0, num_layers):
         layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
+
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
     for ninput, row in new_inputs.iterrows():
         outputs = forward_propagate(neural_network, row.tolist())
-        back_propagate(neural_network, letters[ninput], .1)
+        back_propagate(neural_network, letters_dic[letters[ninput]], .1)
+    print(neural_network)
 
 
 if __name__ == "__main__":

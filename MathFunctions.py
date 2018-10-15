@@ -1,4 +1,5 @@
 import math
+import pandas as pd
 
 
 def oldOutputWeightUpdate(originalWeight, learningRate, actualOutput, expectedOutput, valuePassed): #outdated See new one below
@@ -23,8 +24,12 @@ def getOutputError(actualOutput, targetOutput):
     return (actualOutput - targetOutput) * actualOutput * (1 - actualOutput)
 
 
+def transfer_derivative(output):
+    return output * (1.0 - output)
+
+
 def getHiddenError(neuronPassFailValue, index, layers):
     error = 0
     for neuron in layers[index + 1]:
-        error += (neuron.weights[index] * neuron.error)
+        error += (neuron.weights[index] * neuron.Error)
     return neuronPassFailValue * (1 - neuronPassFailValue) * error
