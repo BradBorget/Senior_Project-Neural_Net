@@ -18,22 +18,6 @@ class Neuron:
         self.letter = letter
 
 
-class NeuralNetClass:
-    def __init__(self):
-        pass
-
-    def fit(self, data, target):
-        pass
-
-
-class NeuralNetModel:
-    def __init__(self):
-        pass
-
-    def predict(self, data):
-        pass
-
-
 def create_network(layers, output_layer, num_weight):
     layer_list = []
     layer_list.append(create_layer(num_weight, layers[0]))
@@ -56,7 +40,6 @@ def create_layer(num_inputs, num_neurons):
 def forward_propagate(network, inputs):
     output = []
     for layer in network:
-        new_inputs = []
         output = []
         for neuron in layer:
             neuron.inputs = inputs
@@ -65,31 +48,6 @@ def forward_propagate(network, inputs):
             neuron.output = activate
             output.append(neuron.output)
     return output
-
-
-
-def backward_propagate_error(network, expected):
-    for i in reversed(range(len(network))):
-        layer = network[i]
-        errors = list()
-        if i != len(network)-1:
-            for j in range(len(layer)):
-                error = 0.0
-                for neuron in network[i + 1]:
-                    error += (neuron.weights[j] * neuron.error)
-                errors.append(error)
-        else:
-            for j in range(len(layer)):
-                neuron = layer[j]
-                errors.append(expected[j] - neuron.output)
-        for j in range(len(layer)):
-            neuron = layer[j]
-            neuron.error = errors[j] * mf.transfer_derivative(neuron.output)
-
-
-def back_propagate(layers, target_value):
-    output_layer = layers[-1]
-    errors = []
 
 
 def back_propagate(layers, target_value, learning_rate):
