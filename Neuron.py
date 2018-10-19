@@ -42,24 +42,26 @@ def create_layer(num_inputs, num_neurons):
 
 
 def forward_propagate(network, inputs):
+    new_inputs = inputs
     for layer in network:
         output = []
         for neuron in layer:
-            neuron.inputs = inputs
+            neuron.inputs = new_inputs
             neuron.inputs.append(-1)
             activate = mf.NeuronPassFail(neuron.weights, neuron.inputs)
             neuron.output = activate
             output.append(neuron.output)
+        new_inputs = output
 
 
 def back_propagate(layers, target_value, learning_rate):
     output_layer = layers[len(layers)-1]
     for neuron in range(len(output_layer)):
         if neuron == target_value:
-            if output_layer[neuron].output <= 0:
+            if output_layer[neuron].output <= .5:
                 output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 1)
         else:
-            if output_layer[neuron].output > 0:
+            if output_layer[neuron].output > .5:
                 output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 0)
     for layer in reversed(range(len(layers)-2)):
         for item in range(len(layers[layer])):
@@ -78,7 +80,7 @@ def evaluate_algorithm(dataset, *args):
     train_set, test_set, targets_train, targets_test = \
         train_test_split(dataset.loc[:, dataset.columns != 'letter'].values, dataset.letter.values, test_size=0.30, random_state=seed)
     #folds = cross_validation_split(dataset, n_folds)
-    scores = list()
+    #scores = list()
     letters_dic = setup_letters(dataset.letter)
     #for fold in folds:
      #   train_set = list(folds)
@@ -95,46 +97,57 @@ def evaluate_algorithm(dataset, *args):
         targets.append(int(letters_dic[values]))
     for values in targets_test:
         test_targets.append(int(letters_dic[values]))
-    predicted = propagation(train_set, test_set, targets,  *args)
-    accuracy = accuracy_metric(test_targets, predicted)
+    accuracy = propagation(train_set, test_set, targets,  *args,test_targets)
+
     return accuracy
 
 
 #
-def propagation(train, test, targets_train, l_rate, n_epoch, n_hidden):
-    n_inputs = len(train)
-    n_outputs = len(targets_train)
+def propagation(train, test, targets_train, l_rate, n_epoch, n_hidden, test_targets):
+    n_inputs = len(train[1])
+    n_outputs = len(set(targets_train))
 
     network = create_network(n_hidden, n_outputs, n_inputs)
-    train_network(network, train, targets_train, l_rate, n_epoch)
-    print("trained")
-    predictions = list()
-    for row in test:
-        prediction = list()
-        for neuron in network[row]:
-            prediction.append(neuron.output)
-        predictions.append(prediction)
-    return(predictions)
+    for epoch in range(n_epoch):
+        train_network(network, train, targets_train, l_rate, n_epoch)
+        predictions = list()
+        output_layer = (network[len(network) -1])
+        for row in test:
+            prediction = list()
+            forward_propagate(network, list(row))
+            for neuron in range(len(output_layer)):
+                if output_layer[neuron].output > .5:
+                    prediction.append(neuron)
+            predictions.append(prediction)
+        accuracy = accuracy_metric(test_targets, predictions)
+        print('Scores: %s' % accuracy)
+    return(accuracy)
 
 
 #Wwork on verifying results
 def train_network(network, train, targets_train, l_rate, n_epoch):
     n = 0
-    for epoch in range(n_epoch):
-        for row in train:
-            forward_propagate(network, list(row))
-            back_propagate(network, targets_train, l_rate)
-            n += 1
-            if 0 == n % 1000:
-                print(n)
+    for row in range(len(train)):
+        i = 0
+        output_layer = network[-1]
+        while output_layer[targets_train[row]].output <= .5:
+            forward_propagate(network, list(train[row]))
+            back_propagate(network, targets_train[row], l_rate)
+            i += 1
+            if(i % 50 == 0):
+                print("break")
+        n += 1
+        if 0 == n % 2000:
+            print(n)
 
 
 # Calculate accuracy percentage
 def accuracy_metric(actual, predicted):
     correct = 0
     for i in range(len(actual)):
-        if actual[i] == predicted[i]:
-            correct += 1
+        for j in predicted[i]:
+            if actual[i] == j:
+                correct += 1
     return correct / float(len(actual)) * 100.0
 
 
@@ -206,13 +219,13 @@ def main():
     output_layer = len(set(dataset))
     #letters_dic = setup_letters(letters)
     layers = set_up_hidden_layers()
-    n_folds = 5
+    #n_folds = 5
     l_rate = 0.3
-    n_epoch = 1
+    n_epoch = 50
 
     scores = evaluate_algorithm(dataset, l_rate, n_epoch, layers)
     print('Scores: %s' % scores)
-    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+    #print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
 
     #neural_network = create_network(layers, output_layer, len(new_inputs.columns))
     #for ninput, row in new_inputs.iterrows():
