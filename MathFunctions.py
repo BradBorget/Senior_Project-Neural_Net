@@ -28,8 +28,9 @@ def transfer_derivative(output):
     return output * (1.0 - output)
 
 
-def getHiddenError(neuronPassFailValue, index, layers):
+def getHiddenError(layer, index, layers):
     error = 0
-    for neuron in layers[index + 1]:
+    output = layers[layer][index].output
+    for neuron in layers[layer+1]:
         error += (neuron.weights[index] * neuron.Error)
-    return neuronPassFailValue * (1 - neuronPassFailValue) * error
+    return output * (1 - output) * error

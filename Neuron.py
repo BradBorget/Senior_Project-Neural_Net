@@ -2,8 +2,12 @@ import random
 import pandas as pd
 import numpy as np
 import itertools
-
+from sklearn.model_selection import train_test_split
 import MathFunctions as mf
+from random import seed
+from random import randrange
+from csv import reader
+from math import exp
 
 
 class Neuron:
@@ -38,7 +42,6 @@ def create_layer(num_inputs, num_neurons):
 
 
 def forward_propagate(network, inputs):
-    output = []
     for layer in network:
         output = []
         for neuron in layer:
@@ -47,7 +50,6 @@ def forward_propagate(network, inputs):
             activate = mf.NeuronPassFail(neuron.weights, neuron.inputs)
             neuron.output = activate
             output.append(neuron.output)
-    return output
 
 
 def back_propagate(layers, target_value, learning_rate):
@@ -61,11 +63,94 @@ def back_propagate(layers, target_value, learning_rate):
                 output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 0)
     for layer in reversed(range(len(layers)-2)):
         for item in range(len(layers[layer])):
-            layers[layer][item].Error = mf.getHiddenError(layers[layer][item].output, item, layers)
-    for neuron in layers[layer]:
-        for weight in range(len(neuron.weights)):
-            neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error,
+            layers[layer][item].Error = mf.getHiddenError(layer, item, layers)
+    for layer in range(len(layers)):
+        for neuron in layers[layer]:
+            for weight in range(len(neuron.weights)):
+                neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error,
                                                      neuron.inputs[weight])
+
+
+# change targets to numbers using dictionary
+def evaluate_algorithm(dataset, *args):
+    seed = random.randint(0, 999)
+
+    train_set, test_set, targets_train, targets_test = \
+        train_test_split(dataset.loc[:, dataset.columns != 'letter'].values, dataset.letter.values, test_size=0.30, random_state=seed)
+    #folds = cross_validation_split(dataset, n_folds)
+    scores = list()
+    letters_dic = setup_letters(dataset.letter)
+    #for fold in folds:
+     #   train_set = list(folds)
+      #  train_set.remove(fold)
+       # train_set = sum(train_set, [])
+        #test_set = list()
+        #for row in fold:
+         #   row_copy = list(row)
+          ##  test_set.append(row_copy)
+            #row_copy[-1] = None
+    targets = []
+    test_targets = []
+    for values in targets_train:
+        targets.append(int(letters_dic[values]))
+    for values in targets_test:
+        test_targets.append(int(letters_dic[values]))
+    predicted = propagation(train_set, test_set, targets,  *args)
+    accuracy = accuracy_metric(test_targets, predicted)
+    return accuracy
+
+
+#
+def propagation(train, test, targets_train, l_rate, n_epoch, n_hidden):
+    n_inputs = len(train)
+    n_outputs = len(targets_train)
+
+    network = create_network(n_hidden, n_outputs, n_inputs)
+    train_network(network, train, targets_train, l_rate, n_epoch)
+    print("trained")
+    predictions = list()
+    for row in test:
+        prediction = list()
+        for neuron in network[row]:
+            prediction.append(neuron.output)
+        predictions.append(prediction)
+    return(predictions)
+
+
+#Wwork on verifying results
+def train_network(network, train, targets_train, l_rate, n_epoch):
+    n = 0
+    for epoch in range(n_epoch):
+        for row in train:
+            forward_propagate(network, list(row))
+            back_propagate(network, targets_train, l_rate)
+            n += 1
+            if 0 == n % 1000:
+                print(n)
+
+
+# Calculate accuracy percentage
+def accuracy_metric(actual, predicted):
+    correct = 0
+    for i in range(len(actual)):
+        if actual[i] == predicted[i]:
+            correct += 1
+    return correct / float(len(actual)) * 100.0
+
+
+def cross_validation_split(dataset, n_folds):
+    dataset_split = list()
+    dataset_copy = list(dataset)
+
+    fold_size = int(len(dataset) / n_folds)
+
+    for i in range(n_folds):
+        fold = list()
+        while len(fold) < fold_size:
+            index = randrange(len(dataset_copy))
+            fold.append(dataset_copy.pop(index))
+        dataset_split.append(fold)
+    return dataset_split
 
 
 def setup_letters(letters_input):
@@ -99,28 +184,44 @@ def setup_letters(letters_input):
     return letters
 
 
-def main():
-    inputs = pd.read_csv("C:\\Users\\bradl\\Documents\\GitHub\\Senior_Project-Neural_Net\\letter-recognition.txt")
-    output_layer = len(set(inputs.letter))
+def load_data():
+    inputs = pd.read_csv("letter-recognition.txt")
     letters = inputs.letter
-
-    letters_dic = setup_letters(letters)
     new_inputs = inputs.loc[:, inputs.columns != 'letter']
+    return letters, new_inputs
 
+
+def set_up_hidden_layers():
     num_layers = int(input("Enter number of hidden layers: "))
     layers = []
     for i in range(0, num_layers):
         layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
+    return layers
 
-    neural_network = create_network(layers, output_layer, len(new_inputs.columns))
-    for ninput, row in new_inputs.iterrows():
-        outputs = forward_propagate(neural_network, row.tolist())
-        back_propagate(neural_network, letters_dic[letters[ninput]], .1)
-    print(neural_network)
+
+def main():
+    #letters, new_inputs = load_data()
+    dataset = pd.read_csv("letter-recognition.txt")
+    output_layer = len(set(dataset))
+    #letters_dic = setup_letters(letters)
+    layers = set_up_hidden_layers()
+    n_folds = 5
+    l_rate = 0.3
+    n_epoch = 1
+
+    scores = evaluate_algorithm(dataset, l_rate, n_epoch, layers)
+    print('Scores: %s' % scores)
+    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+
+    #neural_network = create_network(layers, output_layer, len(new_inputs.columns))
+    #for ninput, row in new_inputs.iterrows():
+      #  forward_propagate(neural_network, row.tolist())
+      #  back_propagate(neural_network, letters_dic[letters[ninput]], .1)
 
 
 if __name__ == "__main__":
     main()
+
 
 # cycle through each Neuron in the output layer and assign a letter to all 26 Neurons
