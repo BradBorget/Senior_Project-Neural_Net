@@ -38,16 +38,12 @@ def create_layer(num_inputs, num_neurons):
 
 
 def forward_propagate(network, inputs):
-    output = []
     for layer in network:
-        output = []
         for neuron in layer:
             neuron.inputs = inputs
             neuron.inputs.append(-1)
             activate = mf.NeuronPassFail(neuron.weights, neuron.inputs)
             neuron.output = activate
-            output.append(neuron.output)
-    return output
 
 
 def back_propagate(layers, target_value, learning_rate):
@@ -61,11 +57,12 @@ def back_propagate(layers, target_value, learning_rate):
                 output_layer[neuron].Error = mf.getOutputError(output_layer[neuron].output, 0)
     for layer in reversed(range(len(layers)-2)):
         for item in range(len(layers[layer])):
-            layers[layer][item].Error = mf.getHiddenError(layers[layer][item].output, item, layers)
-    for neuron in layers[layer]:
-        for weight in range(len(neuron.weights)):
-            neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error,
-                                                     neuron.inputs[weight])
+            layers[layer][item].Error = mf.getHiddenError(layer, item, layers)
+    for layer in range(len(layers)):
+        for neuron in layers[layer]:
+            for weight in range(len(neuron.weights)):
+                neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error,
+                                                         neuron.inputs[weight])
 
 
 def setup_letters(letters_input):
@@ -115,8 +112,9 @@ def main():
 
     neural_network = create_network(layers, output_layer, len(new_inputs.columns))
     for ninput, row in new_inputs.iterrows():
-        outputs = forward_propagate(neural_network, row.tolist())
-        back_propagate(neural_network, letters_dic[letters[ninput]], .1)
+        for i in range(10):
+            outputs = forward_propagate(neural_network, row.tolist())
+            back_propagate(neural_network, letters_dic[letters[ninput]], .1)
     print(neural_network)
 
 
