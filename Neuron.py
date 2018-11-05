@@ -79,18 +79,7 @@ def evaluate_algorithm(dataset, *args):
 
     train_set, test_set, targets_train, targets_test = \
         train_test_split(dataset.loc[:, dataset.columns != 'letter'].values, dataset.letter.values, test_size=0.30, random_state=seed)
-    #folds = cross_validation_split(dataset, n_folds)
-    #scores = list()
     letters_dic = setup_letters(dataset.letter)
-    #for fold in folds:
-     #   train_set = list(folds)
-      #  train_set.remove(fold)
-       # train_set = sum(train_set, [])
-        #test_set = list()
-        #for row in fold:
-         #   row_copy = list(row)
-          ##  test_set.append(row_copy)
-            #row_copy[-1] = None
     targets = []
     test_targets = []
     for values in targets_train:
@@ -130,12 +119,9 @@ def train_network(network, train, targets_train, l_rate, n_epoch):
     for row in range(len(train)):
         i = 0
         output_layer = network[-1]
-        while output_layer[targets_train[row]].output <= .5:
-            forward_propagate(network, list(train[row]))
-            back_propagate(network, targets_train[row], l_rate)
-            i += 1
-            if(i % 50 == 0):
-                print("break")
+
+        forward_propagate(network, list(train[row]))
+        back_propagate(network, targets_train[row], l_rate)
         n += 1
         if 0 == n % 2000:
             print(n)
@@ -143,8 +129,10 @@ def train_network(network, train, targets_train, l_rate, n_epoch):
 
 # Calculate accuracy percentage
 def accuracy_metric(actual, predicted):
+
     correct = 0
     for i in range(len(actual)):
+        print(str(actual[i]) + "        " + str(predicted[i]))
         for j in predicted[i]:
             if actual[i] == j:
                 correct += 1
