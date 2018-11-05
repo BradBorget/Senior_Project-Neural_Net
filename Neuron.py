@@ -44,14 +44,13 @@ def create_layer(num_inputs, num_neurons):
 def forward_propagate(network, inputs):
     new_inputs = inputs
     for layer in network:
-        output = []
         for neuron in layer:
             neuron.inputs = new_inputs
             neuron.inputs.append(-1)
             activate = mf.NeuronPassFail(neuron.weights, neuron.inputs)
             neuron.output = activate
-            output.append(neuron.output)
-        new_inputs = output
+            #output.append(neuron.output)
+        #new_inputs = output
 
 
 def back_propagate(layers, target_value, learning_rate):
@@ -69,8 +68,7 @@ def back_propagate(layers, target_value, learning_rate):
     for layer in range(len(layers)):
         for neuron in layers[layer]:
             for weight in range(len(neuron.weights)):
-                neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error,
-                                                     neuron.inputs[weight])
+                neuron.weights[weight] = mf.weightUpdate(neuron.weights[weight], learning_rate, neuron.Error, neuron.inputs[weight])
 
 
 # change targets to numbers using dictionary
@@ -199,7 +197,12 @@ def set_up_hidden_layers():
         layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
     return layers
-
+    neural_network = create_network(layers, output_layer, len(new_inputs.columns))
+    for ninput, row in new_inputs.iterrows():
+        for i in range(10):
+            forward_propagate(neural_network, row.tolist())
+            back_propagate(neural_network, letters_dic[letters[ninput]], .1)
+    print(neural_network)
 
 def main():
     #letters, new_inputs = load_data()
