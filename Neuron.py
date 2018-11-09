@@ -109,8 +109,10 @@ def train_network(network, train, targets_train, l_rate, n_epoch):
 
 # Calculate accuracy percentage
 def accuracy_metric(actual, predicted):
+
     correct = 0
     for i in range(len(actual)):
+        print(str(actual[i]) + "        " + str(predicted[i]))
         for j in predicted[i]:
             if actual[i] == j:
                 correct += 1
