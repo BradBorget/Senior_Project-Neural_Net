@@ -16,22 +16,9 @@ class Neuron:
         for i in range(num_weights + 1):
             self.weights.append(random.uniform(-1, 1))
         self.inputs = []
-        #self.Bj = 0 #I can't remember what B sub j represents, so I'm commenting it out for now.  Putting in Error instead to represent the value that the neuron came to
         self.output = 0
         self.Error = 0
         self.letter = letter
-
-
-def create_network(layers, output_layer, num_weight):
-    layer_list = []
-    layer_list.append(create_layer(num_weight, layers[0]))
-    j = 0
-    if len(layers) > 1:
-        for i in range(len(layers)-1):
-            layer_list.append(create_layer(layers[i], layers[(i+1)]))
-            j = i
-    layer_list.append(create_layer(layers[j], output_layer))
-    return layer_list
 
 
 def create_layer(num_inputs, num_neurons):
@@ -49,8 +36,6 @@ def forward_propagate(network, inputs):
             neuron.inputs.append(-1)
             activate = mf.NeuronPassFail(neuron.weights, neuron.inputs)
             neuron.output = activate
-            #output.append(neuron.output)
-        #new_inputs = output
 
 
 def back_propagate(layers, target_value, learning_rate):
@@ -74,21 +59,9 @@ def back_propagate(layers, target_value, learning_rate):
 # change targets to numbers using dictionary
 def evaluate_algorithm(dataset, *args):
     seed = random.randint(0, 999)
-
     train_set, test_set, targets_train, targets_test = \
         train_test_split(dataset.loc[:, dataset.columns != 'letter'].values, dataset.letter.values, test_size=0.30, random_state=seed)
-    #folds = cross_validation_split(dataset, n_folds)
-    #scores = list()
     letters_dic = setup_letters(dataset.letter)
-    #for fold in folds:
-     #   train_set = list(folds)
-      #  train_set.remove(fold)
-       # train_set = sum(train_set, [])
-        #test_set = list()
-        #for row in fold:
-         #   row_copy = list(row)
-          ##  test_set.append(row_copy)
-            #row_copy[-1] = None
     targets = []
     test_targets = []
     for values in targets_train:
@@ -104,7 +77,7 @@ def evaluate_algorithm(dataset, *args):
 def propagation(train, test, targets_train, l_rate, n_epoch, n_hidden, test_targets):
     n_inputs = len(train[1])
     n_outputs = len(set(targets_train))
-
+    accuracy = 0
     network = create_network(n_hidden, n_outputs, n_inputs)
     for epoch in range(n_epoch):
         train_network(network, train, targets_train, l_rate, n_epoch)
@@ -119,21 +92,16 @@ def propagation(train, test, targets_train, l_rate, n_epoch, n_hidden, test_targ
             predictions.append(prediction)
         accuracy = accuracy_metric(test_targets, predictions)
         print('Scores: %s' % accuracy)
-    return(accuracy)
+    return accuracy
 
 
 #Wwork on verifying results
 def train_network(network, train, targets_train, l_rate, n_epoch):
     n = 0
     for row in range(len(train)):
-        i = 0
         output_layer = network[-1]
-        while output_layer[targets_train[row]].output <= .5:
-            forward_propagate(network, list(train[row]))
-            back_propagate(network, targets_train[row], l_rate)
-            i += 1
-            if(i % 50 == 0):
-                print("break")
+        forward_propagate(network, list(train[row]))
+        back_propagate(network, targets_train[row], l_rate)
         n += 1
         if 0 == n % 2000:
             print(n)
@@ -202,6 +170,18 @@ def load_data():
     return letters, new_inputs
 
 
+def create_network(layers, output_layer, num_weight):
+    layer_list = []
+    layer_list.append(create_layer(num_weight, layers[0]))
+    j = 0
+    if len(layers) > 1:
+        for i in range(len(layers) - 1):
+            layer_list.append(create_layer(layers[i], layers[(i + 1)]))
+            j = i
+    layer_list.append(create_layer(layers[j], output_layer))
+    return layer_list
+
+
 def set_up_hidden_layers():
     num_layers = int(input("Enter number of hidden layers: "))
     layers = []
@@ -209,31 +189,19 @@ def set_up_hidden_layers():
         layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
     return layers
-    neural_network = create_network(layers, output_layer, len(new_inputs.columns))
-    for ninput, row in new_inputs.iterrows():
-        for i in range(10):
-            forward_propagate(neural_network, row.tolist())
-            back_propagate(neural_network, letters_dic[letters[ninput]], .1)
-    print(neural_network)
+
+
+
 
 def main():
-    #letters, new_inputs = load_data()
     dataset = pd.read_csv("letter-recognition.txt")
     output_layer = len(set(dataset))
     #letters_dic = setup_letters(letters)
     layers = set_up_hidden_layers()
-    #n_folds = 5
     l_rate = 0.3
     n_epoch = 50
-
     scores = evaluate_algorithm(dataset, l_rate, n_epoch, layers)
     print('Scores: %s' % scores)
-    #print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
-
-    #neural_network = create_network(layers, output_layer, len(new_inputs.columns))
-    #for ninput, row in new_inputs.iterrows():
-      #  forward_propagate(neural_network, row.tolist())
-      #  back_propagate(neural_network, letters_dic[letters[ninput]], .1)
 
 
 if __name__ == "__main__":
