@@ -21,6 +21,7 @@ class Neuron:
         self.Error = 0
 
 
+
 def create_network(n_hidden, output_layer, num_weight):
     layer_list = []
     layer_list.append(create_layer(num_weight, n_hidden))
@@ -45,6 +46,7 @@ def forward_propagate(network, inputs):
             neuron.output = activate
             output.append(neuron.output)
         new_inputs = output
+
 
 
 def back_propagate(layers, target_value, learning_rate, row):
@@ -102,7 +104,7 @@ def evaluate_algorithm(dataset, *args):
 def propagation(train, test, targets_train, l_rate, n_epoch, n_hidden, test_targets):
     n_inputs = len(train[0])
     n_outputs = len(set(targets_train))
-
+    accuracy = 0
     network = create_network(n_hidden, n_outputs, n_inputs)
     for epoch in range(n_epoch):
         train_network(network, train, targets_train, l_rate)
@@ -135,13 +137,14 @@ def propagation(train, test, targets_train, l_rate, n_epoch, n_hidden, test_targ
         print_cm(cm, labels)
         accuracy = accuracy_metric(test_targets, predictions)
         print('Scores: %s' % accuracy)
-    return(accuracy)
+    return accuracy
 
 
 #Wwork on verifying results
 def train_network(network, train, targets_train, l_rate):
     n = 0
     for row in range(len(train)):
+        output_layer = network[-1]
         forward_propagate(network, list(train[row]))
         back_propagate(network, targets_train[row], l_rate, list(train[row]))
         n += 1
@@ -260,15 +263,39 @@ def put_letters(letters_input):
     return letters
 
 
+def create_network(layers, output_layer, num_weight):
+    layer_list = []
+    layer_list.append(create_layer(num_weight, layers[0]))
+    j = 0
+    if len(layers) > 1:
+        for i in range(len(layers) - 1):
+            layer_list.append(create_layer(layers[i], layers[(i + 1)]))
+            j = i
+    layer_list.append(create_layer(layers[j], output_layer))
+    return layer_list
+
+
+def set_up_hidden_layers():
+    num_layers = int(input("Enter number of hidden layers: "))
+    layers = []
+    for i in range(0, num_layers):
+        layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
+        layers.append(layer)
+    return layers
+
+
+
+
 def main():
     dataset = pd.read_csv("letter-recognition.txt")
-    #n_folds = 5
+    output_layer = len(set(dataset))
+    #letters_dic = setup_letters(letters)
+    layers = set_up_hidden_layers()
     l_rate = 0.3
-    n_epoch = 5
-    n_neurons = 5
-    scores = evaluate_algorithm(dataset, l_rate, n_epoch, n_neurons)
+    n_epoch = 50
+    scores = evaluate_algorithm(dataset, l_rate, n_epoch, layers)
     print('Scores: %s' % scores)
-    #print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+
 
 if __name__ == "__main__":
     main()
