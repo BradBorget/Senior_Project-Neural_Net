@@ -1,12 +1,14 @@
-# Backprop on the Seeds Dataset
-from random import seed
 from random import randrange
 from random import random
 from csv import reader
 from math import exp
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import pandas as pd
+import pickle
+
 
 
 # Load a CSV file
@@ -170,8 +172,28 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
         letter_dict = put_letters(a_letter_array)
         for row in range(len(actual)):
             actual_letters.append(letter_dict[a_letter_array[row]])
-        cm = confusion_matrix(actual_letters, predicted_letters, labels)
-        print_cm(cm, labels)
+        #cm_analysis(actual_letters, predicted_letters, 'Confusion/confusion_matrix5_.4_100_26.png', labels)
+        scores.append(accuracy)
+    return scores
+
+
+# Evaluate an algorithm using a cross validation split
+def num_evaluate_algorithm(dataset, algorithm, n_folds, *args):
+    folds = cross_validation_split(dataset, n_folds)
+    scores = list()
+    for fold in folds:
+        train_set = list(folds)
+        train_set.remove(fold)
+        train_set = sum(train_set, [])
+        test_set = list()
+        for row in fold:
+            row_copy = list(row)
+            test_set.append(row_copy)
+            row_copy[-1] = None
+        predicted = algorithm(train_set, test_set, *args)
+        actual = [row[-1] for row in fold]
+        accuracy = accuracy_metric(actual, predicted)
+        #cm_analysis(actual, predicted, 'Confusion/confusion_matrix5_.4_100_26.png', labels)
         scores.append(accuracy)
     return scores
 
@@ -242,16 +264,16 @@ def update_weights(network, row, l_rate):
 # Train a network for a fixed number of epochs
 def train_network(network, train, l_rate, n_epoch, n_outputs):
     for epoch in range(n_epoch):
-        n = 0
+        #n = 0
         for row in train:
             outputs = forward_propagate(network, row)
             expected = [0 for i in range(n_outputs)]
             expected[row[-1]] = 1
             backward_propagate_error(network, expected)
             update_weights(network, row, l_rate)
-            n += 1
-            if 0 == n % 2000:
-                print(n)
+            #n += 1
+            #if 0 == n % 2000:
+                #print(n)
 
 
 # Initialize a network
@@ -270,74 +292,120 @@ def predict(network, row):
     return outputs.index(max(outputs))
 
 
-def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False, hide_threshold=None):
-    """pretty print for confusion matrixes"""
-    columnwidth = max([len(x) for x in labels] + [5])  # 5 is value length
-    empty_cell = " " * columnwidth
-    # Print header
-    print("    " + empty_cell, end=" ")
-    for label in labels:
-        print("%{0}s".format(columnwidth) % label, end=" ")
-    print()
-    # Print rows
-    for i, label1 in enumerate(labels):
-        print("    %{0}s".format(columnwidth) % label1, end=" ")
-        for j in range(len(labels)):
-            cell = "%{0}.1f".format(columnwidth) % cm[i, j]
-            if hide_zeroes:
-                cell = cell if float(cm[i, j]) != 0 else empty_cell
-            if hide_diagonal:
-                cell = cell if i != j else empty_cell
-            if hide_threshold:
-                cell = cell if cm[i, j] > hide_threshold else empty_cell
-            print(cell, end=" ")
-        print()
-
-
 # Backpropagation Algorithm With Stochastic Gradient Descent
 def back_propagation(train, test, l_rate, n_epoch, n_hidden):
     n_inputs = len(train[0]) - 1
     n_outputs = len(set([row[-1] for row in train]))
     network = initialize_network(n_inputs, n_hidden, n_outputs)
     train_network(network, train, l_rate, n_epoch, n_outputs)
+    output = open('data.pkl', 'wb')
+    # Pickle dictionary using protocol 0.
+    pickle.dump(network, output)
     predictions = list()
     for row in test:
         prediction = predict(network, row)
         predictions.append(prediction)
-
     return predictions
 
-# load and prepare data
-filename = 'letters.csv'
-dataset = load_csv(filename)
-letter_array = []
-for row in range(len(dataset)):
-    letter_array.append(dataset[row][0])
-    dataset[row].pop(0)
-letterDict = setup_letters(letter_array)
-for row in range(len(dataset)):
-    dataset[row].append(letterDict[letter_array[row]])
-for i in range(len(dataset[0]) - 1):
-    str_column_to_float(dataset, i)
-# convert class column to integers
-str_column_to_int(dataset, len(dataset[0]) - 1)
-# normalize input variables
-minmax = dataset_minmax(dataset)
-normalize_dataset(dataset, minmax)
-# evaluate algorithm
-n_folds = 4
-l_rate = 0.3
-n_epoch = 50
-n_hidden = 6
-scores = evaluate_algorithm(dataset, back_propagation, n_folds, l_rate, n_epoch, n_hidden)
-print('Scores: %s' % scores)
-print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
-plt.plot(scores)
-plt.title('model accuracy chart 1')
-plt.ylabel('accuracy')
-plt.xlabel('fold')
-plt.legend(['train', 'test'], loc='upper left')
-plt.show()
+
+def accuracy_graph(scores):
+    plt.plot(scores)
+    plt.title('model accuracy chart 1')
+    plt.ylabel('accuracy')
+    plt.xlabel('fold')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.savefig('Accuracy/accuracy_chart5_.4_100_26.png')
 
 
+def num_accuracy_graph(scores):
+    plt.plot(scores)
+    plt.title('model accuracy chart 1')
+    plt.ylabel('accuracy')
+    plt.xlabel('fold')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.savefig('Accuracy/num_accuracy_chart5_.4_100_26.png')
 
+def cm_analysis(y_true, y_pred, filename, labels, ymap=None, figsize=(26, 26)):
+    if ymap is not None:
+        y_pred = [ymap[yi] for yi in y_pred]
+        y_true = [ymap[yi] for yi in y_true]
+        labels = [ymap[yi] for yi in labels]
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    cm_sum = np.sum(cm, axis=1, keepdims=True)
+    cm_perc = cm / cm_sum.astype(float) * 100
+    annot = np.empty_like(cm).astype(str)
+    nrows, ncols = cm.shape
+    for i in range(nrows):
+        for j in range(ncols):
+            c = cm[i, j]
+            p = cm_perc[i, j]
+            if i == j:
+                s = cm_sum[i]
+                annot[i, j] = '%.1f%%\n%d/%d' % (p, c, s)
+            elif c == 0:
+                annot[i, j] = ''
+            else:
+                annot[i, j] = '%.1f%%\n%d' % (p, c)
+    cm = pd.DataFrame(cm, index=labels, columns=labels)
+    cm.index.name = 'Actual'
+    cm.columns.name = 'Predicted'
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.heatmap(cm, annot=annot, fmt='', ax=ax)
+    plt.savefig(filename)
+
+
+def letters_run():
+    # load and prepare data
+    filename = 'letters.csv'
+    dataset = load_csv(filename)
+    letter_array = []
+    for row in range(len(dataset)):
+        letter_array.append(dataset[row][0])
+        dataset[row].pop(0)
+    letterDict = setup_letters(letter_array)
+    for row in range(len(dataset)):
+        dataset[row].append(letterDict[letter_array[row]])
+    for i in range(len(dataset[0]) - 1):
+        str_column_to_float(dataset, i)
+    # convert class column to integers
+    str_column_to_int(dataset, len(dataset[0]) - 1)
+    # normalize input variables
+    minmax = dataset_minmax(dataset)
+    normalize_dataset(dataset, minmax)
+    # evaluate algorithm
+    n_folds = 4
+    l_rate = 0.3
+    n_epoch = 50
+    n_hidden = 5
+    scores = evaluate_algorithm(dataset, back_propagation, n_folds, l_rate, n_epoch, n_hidden)
+    print('Scores: %s' % scores)
+    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+    # accuracy_graph(scores)
+
+def numbers_run():
+    # load and prepare data
+    filename = 'train.csv'
+    dataset = load_csv(filename)
+    dataset.pop(0)
+    for i in range(len(dataset[0]) - 1):
+        str_column_to_float(dataset, i)
+    # convert class column to integers
+    str_column_to_int(dataset, len(dataset[0]) - 1)
+    # evaluate algorithm
+    n_folds = 4
+    l_rate = 0.4
+    n_epoch = 100
+    n_hidden = 26
+    scores = num_evaluate_algorithm(dataset, back_propagation, n_folds, l_rate, n_epoch, n_hidden)
+    print('Scores: %s' % scores)
+    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+    num_accuracy_graph(scores)
+
+
+def main():
+    letters_run()
+    #numbers_run()
+
+
+if __name__ == "__main__":
+    main()
