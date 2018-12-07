@@ -21,7 +21,6 @@ class Neuron:
         self.Error = 0
 
 
-
 def create_network(n_hidden, output_layer, num_weight):
     layer_list = []
     layer_list.append(create_layer(num_weight, n_hidden))
@@ -282,8 +281,6 @@ def set_up_hidden_layers():
         layer = int(input("Enter number of Neurons for hidden layer " + str(i+1) + ": "))
         layers.append(layer)
     return layers
-
-
 
 
 def main():
